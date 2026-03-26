@@ -1,0 +1,18 @@
+version: "1"
+
+workspace:
+  name: test-workspace
+  description: A test workspace for mit
+
+repos:
+  repo-alpha:
+    url: git@github.com:org/repo-alpha.git
+    branch: main
+
+  repo-beta:
+    url: git@github.com:org/repo-beta.git
+    path: custom-beta
+    branch: develop
+
+  repo-gamma:
+    url: git@github.com:org/repo-gamma.git

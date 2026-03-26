@@ -1,0 +1,90 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/gabemeola/mit/mit.schema.json",
+  "title": "mit.yaml",
+  "description": "Configuration file for mit - a multi-repo integration tool",
+  "type": "object",
+  "required": [
+    "version",
+    "workspace"
+  ],
+  "properties": {
+    "index": {
+      "type": "object",
+      "description": "Configuration for the semantic index",
+      "properties": {
+        "ignore": {
+          "type": "array",
+          "description": "Additional directory names to skip during indexing (node_modules, vendor, dist, etc. are always skipped)",
+          "items": {
+            "type": "string"
+          }
+        },
+        "model": {
+          "type": "object",
+          "description": "Custom embedding model (defaults to Qwen3-Embedding-0.6B-Q8_0.gguf)",
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "GGUF model filename (stored in ~/.mit/models/)"
+            },
+            "url": {
+              "type": "string",
+              "description": "Download URL for the model (if not already present locally)"
+            }
+          }
+        }
+      }
+    },
+    "repos": {
+      "type": "object",
+      "description": "Map of repository names to their configuration. The key is used as the repo name and default clone directory.",
+      "additionalProperties": {
+        "type": "object",
+        "required": [
+          "url"
+        ],
+        "properties": {
+          "branch": {
+            "type": "string",
+            "description": "Default branch to clone/track (defaults to 'main')",
+            "default": "main"
+          },
+          "path": {
+            "type": "string",
+            "description": "Local directory to clone into (defaults to the repo key name)"
+          },
+          "url": {
+            "type": "string",
+            "description": "Git or Sapling clone URL"
+          }
+        }
+      }
+    },
+    "version": {
+      "type": "string",
+      "description": "Config schema version",
+      "enum": [
+        "1"
+      ],
+      "default": "1"
+    },
+    "workspace": {
+      "type": "object",
+      "description": "Workspace-level metadata",
+      "required": [
+        "name"
+      ],
+      "properties": {
+        "description": {
+          "type": "string",
+          "description": "Optional description of the workspace"
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the workspace"
+        }
+      }
+    }
+  }
+}

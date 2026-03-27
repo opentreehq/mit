@@ -4,10 +4,8 @@ package llama
 /*
 #cgo CFLAGS: -I${SRCDIR}/../../../third_party/llama.cpp/include -I${SRCDIR}/../../../third_party/llama.cpp/ggml/include
 #cgo CXXFLAGS: -I${SRCDIR}/../../../third_party/llama.cpp/include -I${SRCDIR}/../../../third_party/llama.cpp/ggml/include -std=c++17
-#cgo LDFLAGS: -L${SRCDIR}/../../../third_party/llama.cpp/build/src -L${SRCDIR}/../../../third_party/llama.cpp/build/ggml/src -L${SRCDIR}/../../../third_party/llama.cpp/build/ggml/src/ggml-metal -L${SRCDIR}/../../../third_party/llama.cpp/build/ggml/src/ggml-blas -L${SRCDIR}/../../../third_party/llama.cpp/build/ggml/src/ggml-cpu
+#cgo LDFLAGS: -L${SRCDIR}/../../../third_party/llama.cpp/build/src -L${SRCDIR}/../../../third_party/llama.cpp/build/ggml/src -L${SRCDIR}/../../../third_party/llama.cpp/build/ggml/src/ggml-cpu
 #cgo LDFLAGS: -lllama -lggml -lggml-base -lggml-cpu
-#cgo !darwin LDFLAGS: -lstdc++
-#cgo darwin LDFLAGS: -lggml-metal -lggml-blas -framework Foundation -framework Metal -framework MetalKit -framework Accelerate
 #include <stdlib.h>
 #include "binding.h"
 */

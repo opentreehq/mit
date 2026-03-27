@@ -5,31 +5,123 @@ vars:
   BUILD_DIR: ./cmd/mit
   LLAMA_DIR: third_party/llama.cpp
   LLAMA_BUILD: "{{.LLAMA_DIR}}/build"
+  NPROC:
+    sh: sysctl -n hw.ncpu 2>/dev/null || nproc 2>/dev/null || echo 4
+  HOST_OS:
+    sh: uname -s | tr '[:upper:]' '[:lower:]' | sed 's/darwin/macos/' | sed 's/mingw.*/windows/' | sed 's/linux/linux/'
 
 tasks:
-  default:
-    desc: Build with embedding support (requires llama.cpp)
-    deps: [build-llama]
-    env:
-      CGO_ENABLED: "1"
-    cmds:
-      - go build -o {{.BINARY}} {{.BUILD_DIR}}
-
   build:
-    desc: Build with embedding support (requires llama.cpp)
-    deps: [build-llama]
-    env:
-      CGO_ENABLED: "1"
+    desc: Build for the current platform
+    deps: [schema]
     cmds:
-      - go build -o {{.BINARY}} {{.BUILD_DIR}}
+      - task: "build:{{.HOST_OS}}"
 
   install:
     desc: Install mit binary
-    deps: [build-llama]
+    deps: ["build-llama:{{.HOST_OS}}"]
     env:
       CGO_ENABLED: "1"
     cmds:
       - go install {{.BUILD_DIR}}
+
+  # ── Platform targets ────────────────────────────────────────────────
+
+  build:macos:
+    desc: Build for macOS (Metal + Accelerate)
+    deps: [build-llama:macos]
+    env:
+      CGO_ENABLED: "1"
+    cmds:
+      - go build -o {{.BINARY}} {{.BUILD_DIR}}
+
+  build:linux:
+    desc: Cross-compile for Linux x86_64 (CPU-only)
+    deps: [build-llama:linux]
+    env:
+      CGO_ENABLED: "1"
+      GOOS: linux
+      GOARCH: amd64
+      CC: "zig cc -target x86_64-linux-gnu"
+      CXX: "zig c++ -target x86_64-linux-gnu"
+      CGO_LDFLAGS: "-L{{.ROOT_DIR}}/{{.LLAMA_BUILD}}-linux/src -L{{.ROOT_DIR}}/{{.LLAMA_BUILD}}-linux/ggml/src -L{{.ROOT_DIR}}/{{.LLAMA_BUILD}}-linux/ggml/src/ggml-cpu"
+    cmds:
+      - go build -o bin/mit-linux-amd64 {{.BUILD_DIR}}
+
+  build:windows:
+    desc: Cross-compile for Windows x86_64 (CPU-only)
+    deps: [build-llama:windows]
+    env:
+      CGO_ENABLED: "1"
+      GOOS: windows
+      GOARCH: amd64
+      CC: "zig cc -target x86_64-windows-gnu"
+      CXX: "zig c++ -target x86_64-windows-gnu"
+      CGO_LDFLAGS: "-L{{.ROOT_DIR}}/{{.LLAMA_BUILD}}-windows/src -L{{.ROOT_DIR}}/{{.LLAMA_BUILD}}-windows/ggml/src -L{{.ROOT_DIR}}/{{.LLAMA_BUILD}}-windows/ggml/src/ggml-cpu"
+    cmds:
+      - go build -o bin/mit-windows-amd64.exe {{.BUILD_DIR}}
+
+  # ── llama.cpp builds ────────────────────────────────────────────────
+
+  build-llama:macos:
+    desc: Build llama.cpp for macOS (Metal + Accelerate)
+    status:
+      - test -f {{.LLAMA_BUILD}}/src/libllama.a
+    cmds:
+      - echo "Building llama.cpp (macOS Metal + Accelerate)..."
+      - >-
+        cmake -B {{.LLAMA_BUILD}} -S {{.LLAMA_DIR}}
+        -DBUILD_SHARED_LIBS=OFF
+        -DLLAMA_BUILD_EXAMPLES=OFF
+        -DLLAMA_BUILD_TESTS=OFF
+        -DLLAMA_BUILD_SERVER=OFF
+        -DGGML_METAL=ON
+        -DGGML_BLAS=ON
+        -DGGML_BLAS_VENDOR=Apple
+      - cmake --build {{.LLAMA_BUILD}} --config Release -j{{.NPROC}}
+
+  build-llama:linux:
+    desc: Build llama.cpp for Linux x86_64 (CPU-only) using zig
+    status:
+      - test -f {{.LLAMA_BUILD}}-linux/src/libllama.a
+    cmds:
+      - echo "Building llama.cpp (Linux x86_64 CPU-only)..."
+      - >-
+        cmake -B {{.LLAMA_BUILD}}-linux -S {{.LLAMA_DIR}}
+        -DCMAKE_TOOLCHAIN_FILE={{.ROOT_DIR}}/cmake/zig-linux-x86_64.cmake
+        -DBUILD_SHARED_LIBS=OFF
+        -DLLAMA_BUILD_EXAMPLES=OFF
+        -DLLAMA_BUILD_TESTS=OFF
+        -DLLAMA_BUILD_SERVER=OFF
+        -DGGML_METAL=OFF
+        -DGGML_BLAS=OFF
+      - cmake --build {{.LLAMA_BUILD}}-linux --config Release --target llama --target ggml -j{{.NPROC}}
+
+  build-llama:windows:
+    desc: Build llama.cpp for Windows x86_64 (CPU-only) using zig
+    status:
+      - test -f {{.LLAMA_BUILD}}-windows/src/libllama.a
+    cmds:
+      - echo "Building llama.cpp (Windows x86_64 CPU-only)..."
+      - >-
+        cmake -B {{.LLAMA_BUILD}}-windows -S {{.LLAMA_DIR}}
+        -DCMAKE_TOOLCHAIN_FILE={{.ROOT_DIR}}/cmake/zig-windows-x86_64.cmake
+        -DBUILD_SHARED_LIBS=OFF
+        -DLLAMA_BUILD_EXAMPLES=OFF
+        -DLLAMA_BUILD_TESTS=OFF
+        -DLLAMA_BUILD_SERVER=OFF
+        -DGGML_METAL=OFF
+        -DGGML_BLAS=OFF
+      - cmake --build {{.LLAMA_BUILD}}-windows --config Release --target llama --target ggml -j{{.NPROC}}
+
+  # ── Utilities ───────────────────────────────────────────────────────
+
+  build-lite:
+    desc: Build without embedding support (no CGo needed)
+    env:
+      CGO_ENABLED: "0"
+    cmds:
+      - go build -tags noembed -o {{.BINARY}} {{.BUILD_DIR}}
 
   test:
     desc: Run all tests
@@ -53,11 +145,6 @@ tasks:
       - go test ./... -coverprofile=coverage.out -tags noembed
       - go tool cover -html=coverage.out -o coverage.html
 
-  clean:
-    desc: Remove build artifacts
-    cmds:
-      - rm -f {{.BINARY}} coverage.out coverage.html
-
   lint:
     desc: Run go vet
     env:
@@ -65,34 +152,17 @@ tasks:
     cmds:
       - go vet -tags noembed ./...
 
-  build-llama:
-    desc: Build llama.cpp static libraries
-    status:
-      - test -f {{.LLAMA_BUILD}}/src/libllama.a
+  clean:
+    desc: Remove build artifacts
+    deps: [clean-llama]
     cmds:
-      - echo "Building llama.cpp..."
-      - >-
-        cmake -B {{.LLAMA_BUILD}} -S {{.LLAMA_DIR}}
-        -DBUILD_SHARED_LIBS=OFF
-        -DLLAMA_BUILD_EXAMPLES=OFF
-        -DLLAMA_BUILD_TESTS=OFF
-        -DLLAMA_BUILD_SERVER=OFF
-      - cmake --build {{.LLAMA_BUILD}} --config Release -j
+      - rm -f {{.BINARY}} coverage.out coverage.html
+      - rm -rf bin/
 
-  build-full:
-    desc: Build with embedding support (alias for build)
-    deps: [build-llama]
-    env:
-      CGO_ENABLED: "1"
+  clean-llama:
+    desc: Remove all llama.cpp build artifacts (all platforms)
     cmds:
-      - go build -o {{.BINARY}} {{.BUILD_DIR}}
-
-  build-lite:
-    desc: Build without embedding support (no CGo needed)
-    env:
-      CGO_ENABLED: "0"
-    cmds:
-      - go build -tags noembed -o {{.BINARY}} {{.BUILD_DIR}}
+      - rm -rf {{.LLAMA_BUILD}} {{.LLAMA_BUILD}}-linux {{.LLAMA_BUILD}}-windows
 
   schema:
     desc: Generate JSON schema for mit.yaml

@@ -10,6 +10,8 @@ import (
 
 const ConfigFileName = "mit.yaml"
 
+const SchemaComment = "# yaml-language-server: $schema=https://raw.githubusercontent.com/gabemeola/mit/refs/heads/main/mit.schema.json\n"
+
 // Load reads and parses mit.yaml from the given directory.
 func Load(dir string) (*Config, error) {
 	path := filepath.Join(dir, ConfigFileName)
@@ -49,7 +51,8 @@ func SaveFile(path string, cfg *Config) error {
 	if err != nil {
 		return fmt.Errorf("marshaling config: %w", err)
 	}
-	return os.WriteFile(path, data, 0644)
+	out := append([]byte(SchemaComment), data...)
+	return os.WriteFile(path, out, 0644)
 }
 
 // FindRoot walks up from dir looking for mit.yaml, returns the directory containing it.

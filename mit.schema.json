@@ -24,13 +24,9 @@
           "type": "object",
           "description": "Custom embedding model (defaults to Qwen3-Embedding-0.6B-Q8_0.gguf)",
           "properties": {
-            "name": {
-              "type": "string",
-              "description": "GGUF model filename (stored in ~/.mit/models/)"
-            },
             "url": {
               "type": "string",
-              "description": "Download URL for the model (if not already present locally)"
+              "description": "Download URL for the GGUF model file. Filename is derived from the URL."
             }
           }
         }

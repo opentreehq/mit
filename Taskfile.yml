@@ -113,6 +113,8 @@ tasks:
         -DGGML_METAL=OFF
         -DGGML_BLAS=OFF
       - cmake --build {{.LLAMA_BUILD}}-windows --config Release --target llama --target ggml -j{{.NPROC}}
+      # cmake drops the lib prefix for ggml targets on Windows; fix so -l flags work
+      - for f in {{.LLAMA_BUILD}}-windows/ggml/src/*.a; do b=$(basename "$f"); case "$b" in lib*) ;; *) mv "$f" "$(dirname "$f")/lib$b" ;; esac; done
 
   # ── Utilities ───────────────────────────────────────────────────────
 

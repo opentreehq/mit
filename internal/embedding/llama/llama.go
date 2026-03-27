@@ -4,8 +4,6 @@ package llama
 /*
 #cgo CFLAGS: -I${SRCDIR}/../../../third_party/llama.cpp/include -I${SRCDIR}/../../../third_party/llama.cpp/ggml/include
 #cgo CXXFLAGS: -I${SRCDIR}/../../../third_party/llama.cpp/include -I${SRCDIR}/../../../third_party/llama.cpp/ggml/include -std=c++17
-#cgo LDFLAGS: -L${SRCDIR}/../../../third_party/llama.cpp/build/src -L${SRCDIR}/../../../third_party/llama.cpp/build/ggml/src -L${SRCDIR}/../../../third_party/llama.cpp/build/ggml/src/ggml-cpu
-#cgo LDFLAGS: -lllama -lggml -lggml-base -lggml-cpu
 #include <stdlib.h>
 #include "binding.h"
 */

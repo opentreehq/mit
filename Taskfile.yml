@@ -7,19 +7,22 @@ vars:
   LLAMA_BUILD: "{{.LLAMA_DIR}}/build"
   NPROC:
     sh: sysctl -n hw.ncpu 2>/dev/null || nproc 2>/dev/null || echo 4
-  HOST_OS:
-    sh: uname -s | tr '[:upper:]' '[:lower:]' | sed 's/darwin/macos/' | sed 's/mingw.*/windows/' | sed 's/linux/linux/'
+  HOST_TARGET:
+    sh: |
+      os=$(uname -s | tr '[:upper:]' '[:lower:]' | sed 's/darwin/macos/' | sed 's/mingw.*/windows/')
+      arch=$(uname -m | sed 's/x86_64/amd64/' | sed 's/aarch64/arm64/' | sed 's/arm64/arm64/')
+      echo "${os}-${arch}"
 
 tasks:
   build:
     desc: Build for the current platform
     deps: [schema]
     cmds:
-      - task: "build:{{.HOST_OS}}"
+      - task: "build:{{.HOST_TARGET}}"
 
   install:
     desc: Install mit binary
-    deps: ["build-llama:{{.HOST_OS}}"]
+    deps: ["build-llama:{{.HOST_TARGET}}"]
     env:
       CGO_ENABLED: "1"
     cmds:
@@ -27,43 +30,56 @@ tasks:
 
   # ── Platform targets ────────────────────────────────────────────────
 
-  build:macos:
+  build:macos-arm64:
     desc: Build for macOS (Metal + Accelerate)
-    deps: [build-llama:macos]
+    deps: [build-llama:macos-arm64]
     env:
       CGO_ENABLED: "1"
     cmds:
       - go build -o {{.BINARY}} {{.BUILD_DIR}}
 
-  build:linux:
+  build:linux-amd64:
     desc: Cross-compile for Linux x86_64 (CPU-only)
-    deps: [build-llama:linux]
+    deps: [build-llama:linux-amd64]
     env:
       CGO_ENABLED: "1"
       GOOS: linux
       GOARCH: amd64
       CC: "zig cc -target x86_64-linux-gnu"
       CXX: "zig c++ -target x86_64-linux-gnu"
-      CGO_LDFLAGS: "-L{{.ROOT_DIR}}/{{.LLAMA_BUILD}}-linux/src -L{{.ROOT_DIR}}/{{.LLAMA_BUILD}}-linux/ggml/src -L{{.ROOT_DIR}}/{{.LLAMA_BUILD}}-linux/ggml/src/ggml-cpu"
+      CGO_LDFLAGS: "-L{{.ROOT_DIR}}/{{.LLAMA_BUILD}}-linux-amd64/src -L{{.ROOT_DIR}}/{{.LLAMA_BUILD}}-linux-amd64/ggml/src -L{{.ROOT_DIR}}/{{.LLAMA_BUILD}}-linux-amd64/ggml/src/ggml-cpu"
     cmds:
       - go build -o bin/mit-linux-amd64 {{.BUILD_DIR}}
 
-  build:windows:
+  build:linux-arm64:
+    desc: Cross-compile for Linux aarch64 (CPU-only)
+    deps: [build-llama:linux-arm64]
+    env:
+      CGO_ENABLED: "1"
+      GOOS: linux
+      GOARCH: arm64
+      CC: "zig cc -target aarch64-linux-gnu"
+      CXX: "zig c++ -target aarch64-linux-gnu"
+      CGO_LDFLAGS: "-L{{.ROOT_DIR}}/{{.LLAMA_BUILD}}-linux-arm64/src -L{{.ROOT_DIR}}/{{.LLAMA_BUILD}}-linux-arm64/ggml/src -L{{.ROOT_DIR}}/{{.LLAMA_BUILD}}-linux-arm64/ggml/src/ggml-cpu"
+    cmds:
+      - go build -o bin/mit-linux-arm64 {{.BUILD_DIR}}
+
+  build:windows-amd64:
     desc: Cross-compile for Windows x86_64 (CPU-only)
-    deps: [build-llama:windows]
+    deps: [build-llama:windows-amd64]
     env:
       CGO_ENABLED: "1"
       GOOS: windows
       GOARCH: amd64
       CC: "zig cc -target x86_64-windows-gnu"
       CXX: "zig c++ -target x86_64-windows-gnu"
-      CGO_LDFLAGS: "-L{{.ROOT_DIR}}/{{.LLAMA_BUILD}}-windows/src -L{{.ROOT_DIR}}/{{.LLAMA_BUILD}}-windows/ggml/src -L{{.ROOT_DIR}}/{{.LLAMA_BUILD}}-windows/ggml/src/ggml-cpu"
+      CGO_LDFLAGS: "-L{{.ROOT_DIR}}/{{.LLAMA_BUILD}}-windows-amd64/src -L{{.ROOT_DIR}}/{{.LLAMA_BUILD}}-windows-amd64/ggml/src -L{{.ROOT_DIR}}/{{.LLAMA_BUILD}}-windows-amd64/ggml/src/ggml-cpu"
     cmds:
       - go build -o bin/mit-windows-amd64.exe {{.BUILD_DIR}}
 
   # ── llama.cpp builds ────────────────────────────────────────────────
 
-  build-llama:macos:
+  build-llama:macos-arm64:
     desc: Build llama.cpp for macOS (Metal + Accelerate)
     status:
       - test -f {{.LLAMA_BUILD}}/src/libllama.a
@@ -80,14 +96,14 @@ tasks:
         -DGGML_BLAS_VENDOR=Apple
       - cmake --build {{.LLAMA_BUILD}} --config Release -j{{.NPROC}}
 
-  build-llama:linux:
+  build-llama:linux-amd64:
     desc: Build llama.cpp for Linux x86_64 (CPU-only) using zig
     status:
-      - test -f {{.LLAMA_BUILD}}-linux/src/libllama.a
+      - test -f {{.LLAMA_BUILD}}-linux-amd64/src/libllama.a
     cmds:
       - echo "Building llama.cpp (Linux x86_64 CPU-only)..."
       - >-
-        cmake -B {{.LLAMA_BUILD}}-linux -S {{.LLAMA_DIR}}
+        cmake -B {{.LLAMA_BUILD}}-linux-amd64 -S {{.LLAMA_DIR}}
         -DCMAKE_TOOLCHAIN_FILE={{.ROOT_DIR}}/cmake/zig-linux-x86_64.cmake
         -DBUILD_SHARED_LIBS=OFF
         -DLLAMA_BUILD_EXAMPLES=OFF
@@ -95,16 +111,33 @@ tasks:
         -DLLAMA_BUILD_SERVER=OFF
         -DGGML_METAL=OFF
         -DGGML_BLAS=OFF
-      - cmake --build {{.LLAMA_BUILD}}-linux --config Release --target llama --target ggml -j{{.NPROC}}
+      - cmake --build {{.LLAMA_BUILD}}-linux-amd64 --config Release --target llama --target ggml -j{{.NPROC}}
 
-  build-llama:windows:
+  build-llama:linux-arm64:
+    desc: Build llama.cpp for Linux aarch64 (CPU-only) using zig
+    status:
+      - test -f {{.LLAMA_BUILD}}-linux-arm64/src/libllama.a
+    cmds:
+      - echo "Building llama.cpp (Linux aarch64 CPU-only)..."
+      - >-
+        cmake -B {{.LLAMA_BUILD}}-linux-arm64 -S {{.LLAMA_DIR}}
+        -DCMAKE_TOOLCHAIN_FILE={{.ROOT_DIR}}/cmake/zig-linux-aarch64.cmake
+        -DBUILD_SHARED_LIBS=OFF
+        -DLLAMA_BUILD_EXAMPLES=OFF
+        -DLLAMA_BUILD_TESTS=OFF
+        -DLLAMA_BUILD_SERVER=OFF
+        -DGGML_METAL=OFF
+        -DGGML_BLAS=OFF
+      - cmake --build {{.LLAMA_BUILD}}-linux-arm64 --config Release --target llama --target ggml -j{{.NPROC}}
+
+  build-llama:windows-amd64:
     desc: Build llama.cpp for Windows x86_64 (CPU-only) using zig
     status:
-      - test -f {{.LLAMA_BUILD}}-windows/src/libllama.a
+      - test -f {{.LLAMA_BUILD}}-windows-amd64/src/libllama.a
     cmds:
       - echo "Building llama.cpp (Windows x86_64 CPU-only)..."
       - >-
-        cmake -B {{.LLAMA_BUILD}}-windows -S {{.LLAMA_DIR}}
+        cmake -B {{.LLAMA_BUILD}}-windows-amd64 -S {{.LLAMA_DIR}}
         -DCMAKE_TOOLCHAIN_FILE={{.ROOT_DIR}}/cmake/zig-windows-x86_64.cmake
         -DBUILD_SHARED_LIBS=OFF
         -DLLAMA_BUILD_EXAMPLES=OFF
@@ -112,9 +145,9 @@ tasks:
         -DLLAMA_BUILD_SERVER=OFF
         -DGGML_METAL=OFF
         -DGGML_BLAS=OFF
-      - cmake --build {{.LLAMA_BUILD}}-windows --config Release --target llama --target ggml -j{{.NPROC}}
+      - cmake --build {{.LLAMA_BUILD}}-windows-amd64 --config Release --target llama --target ggml -j{{.NPROC}}
       # cmake drops the lib prefix for ggml targets on Windows; fix so -l flags work
-      - for f in {{.LLAMA_BUILD}}-windows/ggml/src/*.a; do b=$(basename "$f"); case "$b" in lib*) ;; *) mv "$f" "$(dirname "$f")/lib$b" ;; esac; done
+      - for f in {{.LLAMA_BUILD}}-windows-amd64/ggml/src/*.a; do b=$(basename "$f"); case "$b" in lib*) ;; *) mv "$f" "$(dirname "$f")/lib$b" ;; esac; done
 
   # ── Utilities ───────────────────────────────────────────────────────
 
@@ -164,7 +197,7 @@ tasks:
   clean-llama:
     desc: Remove all llama.cpp build artifacts (all platforms)
     cmds:
-      - rm -rf {{.LLAMA_BUILD}} {{.LLAMA_BUILD}}-linux {{.LLAMA_BUILD}}-windows
+      - rm -rf {{.LLAMA_BUILD}} {{.LLAMA_BUILD}}-linux-amd64 {{.LLAMA_BUILD}}-linux-arm64 {{.LLAMA_BUILD}}-windows-amd64
 
   schema:
     desc: Generate JSON schema for mit.yaml

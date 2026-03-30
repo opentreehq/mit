@@ -150,6 +150,21 @@ CREATE TABLE IF NOT EXISTS index_state (
 	mtime_ns   INTEGER DEFAULT 0,
 	file_size  INTEGER DEFAULT 0
 );
+
+CREATE TABLE IF NOT EXISTS issue_cache (
+	id         TEXT NOT NULL,
+	repo       TEXT NOT NULL,
+	source     TEXT NOT NULL,
+	title      TEXT NOT NULL,
+	body       TEXT,
+	status     TEXT,
+	url        TEXT,
+	author     TEXT,
+	labels     TEXT,
+	created_at DATETIME,
+	fetched_at DATETIME NOT NULL,
+	PRIMARY KEY (id, repo)
+);
 `
 	_, err := db.conn.Exec(schema)
 	if err != nil {

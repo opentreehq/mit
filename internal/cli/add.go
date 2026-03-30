@@ -74,7 +74,7 @@ func runAdd(cmd *cobra.Command, args []string) error {
 	fmt.Printf("Added %s to %s\n", name, config.ConfigFileName)
 
 	// Clone if not already present
-	resolved := repo.Resolve(name)
+	resolved := repo.Resolve(name, cfg.Workspace.Forge)
 	absPath := filepath.Join(root, resolved.Path)
 	if _, err := os.Stat(absPath); err != nil {
 		if !flagDryRun {

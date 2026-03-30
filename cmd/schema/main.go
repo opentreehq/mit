@@ -57,6 +57,11 @@ func main() {
 						Type:        "string",
 						Description: "Optional description of the workspace",
 					},
+					"forge": {
+						Type:        "string",
+						Description: "Default forge type for all repos (can be overridden per-repo)",
+						Enum:        []string{"github", "gitlab"},
+					},
 				},
 			},
 			"index": {
@@ -99,6 +104,11 @@ func main() {
 							Type:        "string",
 							Description: "Default branch to clone/track (defaults to 'main')",
 							Default:     "main",
+						},
+						"forge": {
+							Type:        "string",
+							Description: "Forge type for this repo (overrides workspace-level forge)",
+							Enum:        []string{"github", "gitlab"},
 						},
 					},
 				},

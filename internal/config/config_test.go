@@ -118,7 +118,7 @@ func TestParse_InvalidYAML(t *testing.T) {
 
 func TestResolve_Defaults(t *testing.T) {
 	repo := Repo{URL: "git@github.com:org/r.git"}
-	resolved := repo.Resolve("my-repo")
+	resolved := repo.Resolve("my-repo", "")
 
 	if resolved.Name != "my-repo" {
 		t.Errorf("name: got %q", resolved.Name)
@@ -137,7 +137,7 @@ func TestResolve_ExplicitValues(t *testing.T) {
 		Path:   "custom",
 		Branch: "develop",
 	}
-	resolved := repo.Resolve("my-repo")
+	resolved := repo.Resolve("my-repo", "")
 
 	if resolved.Path != "custom" {
 		t.Errorf("path: got %q", resolved.Path)
@@ -185,6 +185,80 @@ func TestLoadAndSave(t *testing.T) {
 	}
 	if len(loaded.Repos) != 1 {
 		t.Errorf("loaded repos count: got %d", len(loaded.Repos))
+	}
+}
+
+func TestParse_ForgeConfig(t *testing.T) {
+	yaml := `
+version: "1"
+workspace:
+  name: test
+  forge: gitlab
+repos:
+  backend:
+    url: git@gitlab.com:team/backend.git
+  frontend:
+    url: git@github.com:org/frontend.git
+    forge: github
+`
+	cfg, err := Parse([]byte(yaml))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if cfg.Workspace.Forge != "gitlab" {
+		t.Errorf("workspace forge: got %q, want %q", cfg.Workspace.Forge, "gitlab")
+	}
+	if cfg.Repos["frontend"].Forge != "github" {
+		t.Errorf("frontend forge: got %q, want %q", cfg.Repos["frontend"].Forge, "github")
+	}
+	if cfg.Repos["backend"].Forge != "" {
+		t.Errorf("backend forge: got %q, want empty (inherits at resolve time)", cfg.Repos["backend"].Forge)
+	}
+}
+
+func TestResolve_ForgeInheritance(t *testing.T) {
+	tests := []struct {
+		name           string
+		repoForge      string
+		workspaceForge string
+		wantForge      string
+	}{
+		{"repo override", "github", "gitlab", "github"},
+		{"workspace default", "", "gitlab", "gitlab"},
+		{"neither set", "", "", ""},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			repo := Repo{URL: "git@example.com:org/r.git", Forge: tt.repoForge}
+			resolved := repo.Resolve("test", tt.workspaceForge)
+			if resolved.Forge != tt.wantForge {
+				t.Errorf("forge = %q, want %q", resolved.Forge, tt.wantForge)
+			}
+		})
+	}
+}
+
+func TestResolveAll_ForgeInheritance(t *testing.T) {
+	cfg := &Config{
+		Workspace: WorkspaceConfig{Name: "test", Forge: "gitlab"},
+		Repos: map[string]Repo{
+			"a": {URL: "url-a"},
+			"b": {URL: "url-b", Forge: "github"},
+		},
+	}
+	repos := cfg.ResolveAll()
+
+	forgeByName := map[string]string{}
+	for _, r := range repos {
+		forgeByName[r.Name] = r.Forge
+	}
+
+	if forgeByName["a"] != "gitlab" {
+		t.Errorf("repo a forge = %q, want %q (inherited)", forgeByName["a"], "gitlab")
+	}
+	if forgeByName["b"] != "github" {
+		t.Errorf("repo b forge = %q, want %q (overridden)", forgeByName["b"], "github")
 	}
 }
 

@@ -12,6 +12,7 @@ type Config struct {
 type WorkspaceConfig struct {
 	Name        string `yaml:"name"`
 	Description string `yaml:"description,omitempty"`
+	Forge       string `yaml:"forge,omitempty"` // "github" or "gitlab" — default for all repos
 }
 
 // IndexConfig holds configuration for the semantic index.
@@ -57,6 +58,7 @@ type Repo struct {
 	URL    string `yaml:"url"`
 	Path   string `yaml:"path,omitempty"`
 	Branch string `yaml:"branch,omitempty"`
+	Forge  string `yaml:"forge,omitempty"` // overrides workspace.forge
 }
 
 // ResolvedRepo is a Repo with all defaults applied.
@@ -65,22 +67,28 @@ type ResolvedRepo struct {
 	URL    string
 	Path   string
 	Branch string
+	Forge  string // resolved: repo.Forge || workspace.Forge || ""
 }
 
 // Resolve applies defaults to the repo configuration.
-// name is the key from the repos map.
-func (r Repo) Resolve(name string) ResolvedRepo {
+// name is the key from the repos map. workspaceForge is the
+// workspace-level forge default (may be empty).
+func (r Repo) Resolve(name, workspaceForge string) ResolvedRepo {
 	resolved := ResolvedRepo{
 		Name:   name,
 		URL:    r.URL,
 		Path:   r.Path,
 		Branch: r.Branch,
+		Forge:  r.Forge,
 	}
 	if resolved.Path == "" {
 		resolved.Path = name
 	}
 	if resolved.Branch == "" {
 		resolved.Branch = "main"
+	}
+	if resolved.Forge == "" {
+		resolved.Forge = workspaceForge
 	}
 	return resolved
 }
@@ -89,7 +97,7 @@ func (r Repo) Resolve(name string) ResolvedRepo {
 func (c *Config) ResolveAll() []ResolvedRepo {
 	repos := make([]ResolvedRepo, 0, len(c.Repos))
 	for name, repo := range c.Repos {
-		repos = append(repos, repo.Resolve(name))
+		repos = append(repos, repo.Resolve(name, c.Workspace.Forge))
 	}
 	return repos
 }

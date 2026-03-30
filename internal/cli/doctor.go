@@ -79,6 +79,32 @@ func runDoctor(cmd *cobra.Command, args []string) error {
 		})
 	}
 
+	// Check forge CLIs based on configured forges
+	forgesNeeded := map[string]bool{}
+	for _, repo := range repos {
+		if repo.Forge != "" {
+			forgesNeeded[repo.Forge] = true
+		}
+	}
+	for forgeName := range forgesNeeded {
+		tool := "gh"
+		if forgeName == "gitlab" {
+			tool = "glab"
+		}
+		_, lookErr := exec.LookPath(tool)
+		status := "ok"
+		detail := "installed"
+		if lookErr != nil {
+			status = "warning"
+			detail = "not found in PATH"
+		}
+		checks = append(checks, doctorCheck{
+			Name:   fmt.Sprintf("forge/%s", tool),
+			Status: status,
+			Detail: detail,
+		})
+	}
+
 	// Check .mit directory
 	if _, err := os.Stat(fmt.Sprintf("%s/.mit", ws.Root)); err != nil {
 		checks = append(checks, doctorCheck{

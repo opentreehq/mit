@@ -4,6 +4,7 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 )
 
 func tempDB(t *testing.T) *DB {
@@ -243,5 +244,95 @@ func TestIndexState(t *testing.T) {
 	state, _ = db.GetIndexState("foo.go")
 	if state.Checksum != "sha256:bbb" {
 		t.Fatalf("checksum after upsert: got %q, want %q", state.Checksum, "sha256:bbb")
+	}
+}
+
+func TestIssueCacheRoundTrip(t *testing.T) {
+	db := tempDB(t)
+	now := time.Now().UTC()
+
+	issues := []CachedIssue{
+		{ID: "github#1", Repo: "repo-a", Source: "github", Title: "Bug fix", Status: "open", CreatedAt: now, FetchedAt: now},
+		{ID: "github#2", Repo: "repo-a", Source: "github", Title: "Feature", Status: "open", URL: "https://example.com/2", CreatedAt: now, FetchedAt: now},
+	}
+
+	if err := db.CacheIssues("repo-a", issues); err != nil {
+		t.Fatalf("cache: %v", err)
+	}
+
+	got, err := db.GetCachedIssues("")
+	if err != nil {
+		t.Fatalf("get all: %v", err)
+	}
+	if len(got) != 2 {
+		t.Fatalf("count: got %d, want 2", len(got))
+	}
+	if got[0].Title != "Feature" && got[1].Title != "Feature" {
+		t.Error("expected 'Feature' in results")
+	}
+
+	// Filter by repo
+	got, err = db.GetCachedIssues("repo-a")
+	if err != nil {
+		t.Fatalf("get by repo: %v", err)
+	}
+	if len(got) != 2 {
+		t.Fatalf("count by repo: got %d, want 2", len(got))
+	}
+
+	got, err = db.GetCachedIssues("repo-b")
+	if err != nil {
+		t.Fatalf("get by repo-b: %v", err)
+	}
+	if len(got) != 0 {
+		t.Fatalf("count by repo-b: got %d, want 0", len(got))
+	}
+
+	// Cache age should be non-negative (may be 0 if test runs fast)
+	age := db.GetCacheAge(nil)
+	if age < 0 {
+		t.Errorf("expected non-negative cache age, got %v", age)
+	}
+}
+
+func TestIssueCacheReplace(t *testing.T) {
+	db := tempDB(t)
+	now := time.Now().UTC()
+
+	// Insert initial issues
+	db.CacheIssues("repo-a", []CachedIssue{
+		{ID: "github#1", Repo: "repo-a", Source: "github", Title: "Old", Status: "open", CreatedAt: now, FetchedAt: now},
+		{ID: "github#2", Repo: "repo-a", Source: "github", Title: "Old2", Status: "open", CreatedAt: now, FetchedAt: now},
+	})
+
+	// Replace with new issues
+	db.CacheIssues("repo-a", []CachedIssue{
+		{ID: "github#3", Repo: "repo-a", Source: "github", Title: "New", Status: "open", CreatedAt: now, FetchedAt: now},
+	})
+
+	got, _ := db.GetCachedIssues("repo-a")
+	if len(got) != 1 {
+		t.Fatalf("count after replace: got %d, want 1", len(got))
+	}
+	if got[0].Title != "New" {
+		t.Errorf("title: got %q, want %q", got[0].Title, "New")
+	}
+}
+
+func TestIssueCacheClear(t *testing.T) {
+	db := tempDB(t)
+	now := time.Now().UTC()
+
+	db.CacheIssues("repo-a", []CachedIssue{
+		{ID: "github#1", Repo: "repo-a", Source: "github", Title: "Test", Status: "open", CreatedAt: now, FetchedAt: now},
+	})
+
+	if err := db.ClearIssueCache(); err != nil {
+		t.Fatalf("clear: %v", err)
+	}
+
+	got, _ := db.GetCachedIssues("")
+	if len(got) != 0 {
+		t.Fatalf("count after clear: got %d, want 0", len(got))
 	}
 }

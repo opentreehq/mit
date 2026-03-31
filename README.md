@@ -11,6 +11,15 @@ Multi-repo Integration Tool. Manage multiple repositories as a unified workspace
 
 ## Getting Started
 
+
+### Install with Homebrew  
+
+```sh
+brew install opentreehq/tap/mit
+```
+
+### Build from source  
+
 ```sh
 # Clone with submodules
 git clone --recurse-submodules https://github.com/gabemeola/mit.git

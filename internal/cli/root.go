@@ -3,9 +3,14 @@ package cli
 import (
 	"fmt"
 	"runtime"
+	"strings"
 
 	"github.com/spf13/cobra"
 )
+
+const rootLong = `mit is a multi-repo management tool that handles multiple repositories
+without git submodules. It supports both git and Sapling (sl) as VCS drivers
+and is designed for both humans and AI agents.`
 
 var (
 	flagRepos   string
@@ -19,12 +24,11 @@ var (
 var rootCmd = &cobra.Command{
 	Use:   "mit",
 	Short: "Multi-repo Integration Tool",
-	Long: `mit is a multi-repo management tool that handles multiple repositories
-without git submodules. It supports both git and Sapling (sl) as VCS drivers
-and is designed for both humans and AI agents.`,
+	Long:  rootLong,
 }
 
 func init() {
+	SetVersion("")
 	rootCmd.PersistentFlags().StringVar(&flagRepos, "repos", "", "filter to specific repos (comma-separated)")
 	rootCmd.PersistentFlags().StringVar(&flagExclude, "exclude", "", "exclude specific repos (comma-separated)")
 	rootCmd.PersistentFlags().IntVarP(&flagJobs, "jobs", "j", runtime.NumCPU(), "parallelism (default: num CPUs)")
@@ -35,6 +39,16 @@ func init() {
 
 func Execute() error {
 	return rootCmd.Execute()
+}
+
+func SetVersion(version string) {
+	version = strings.TrimSpace(version)
+	if version == "" {
+		version = "dev"
+	}
+	rootCmd.Version = version
+	rootCmd.Long = fmt.Sprintf("%s\n\nVersion: %s", rootLong, version)
+	rootCmd.SetVersionTemplate("{{.Version}}\n")
 }
 
 func getOutputFormat() string {

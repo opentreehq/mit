@@ -3,6 +3,7 @@ version: "3"
 vars:
   BINARY: mit
   BUILD_DIR: ./cmd/mit
+  DIST_DIR: dist
   RELEASE_DIR: dist/release
   VERSION:
     sh: git describe --tags --always --dirty
@@ -172,6 +173,9 @@ tasks:
       - rm -rf {{.RELEASE_DIR}}
       - mkdir -p {{.RELEASE_DIR}}
 
+      # Stamp the CLI with the release tag before any binaries are built.
+      - printf '%s\n' '{{.RELEASE_TAG}}' > cmd/mit/version.txt
+
       # Build each supported target using the existing platform-specific tasks.
       - task: build:macos-arm64
       - task: build:linux-amd64
@@ -212,7 +216,7 @@ tasks:
         darwin_arm64_sha=$(shasum -a 256 {{.RELEASE_DIR}}/{{.BINARY}}_Darwin_arm64.tar.gz | awk '{print $1}')
         linux_amd64_sha=$(shasum -a 256 {{.RELEASE_DIR}}/{{.BINARY}}_Linux_x86_64.tar.gz | awk '{print $1}')
         linux_arm64_sha=$(shasum -a 256 {{.RELEASE_DIR}}/{{.BINARY}}_Linux_arm64.tar.gz | awk '{print $1}')
-        cat > {{.RELEASE_DIR}}/{{.BINARY}}.rb <<EOF
+        cat > {{.DIST_DIR}}/{{.BINARY}}.rb <<EOF
         # typed: false
         # frozen_string_literal: true
 

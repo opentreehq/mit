@@ -2,45 +2,14 @@
 
 Multi-repo Integration Tool. Manage multiple repositories as a unified workspace without git submodules. Supports both Git and Sapling as VCS drivers. Designed for both humans and AI agents.
 
-## Prerequisites
-
-- [Go](https://go.dev/) 1.26+
-- [Task](https://taskfile.dev/) (task runner)
-- [CMake](https://cmake.org/) (for building llama.cpp)
-- [Zig](https://ziglang.org/) (only needed for cross-compilation)
-
-## Getting Started
+## Install
 
 
-### Install with Homebrew  
+### With Homebrew
 
 ```sh
 brew install opentreehq/tap/mit
 ```
-
-### Build from source  
-
-```sh
-# Clone with submodules
-git clone --recurse-submodules https://github.com/gabemeola/mit.git
-cd mit
-
-# Build for your current platform
-task build
-
-# Or install to $GOPATH/bin
-task install
-```
-
-### Lite Build (no embedding support)
-
-If you don't need `mit index` / `mit search`, you can build without CGo or llama.cpp:
-
-```sh
-task build-lite
-```
-
-This produces a smaller binary without the `index` and `search` commands.
 
 ## Usage
 
@@ -296,6 +265,37 @@ All binaries are output to `./dist/`.
 Cross-compilation from macOS uses Zig as the C/C++ toolchain. Linux and Windows targets are CPU-only; macOS uses Metal + Accelerate.
 
 ## Contributing
+
+### Prerequisites
+
+- [Go](https://go.dev/) 1.26+
+- [Task](https://taskfile.dev/) (task runner)
+- [CMake](https://cmake.org/) (for building llama.cpp)
+- [Zig](https://ziglang.org/) (only needed for cross-compilation)
+
+### Build from source  
+
+```sh
+# Clone with submodules
+git clone --recurse-submodules https://github.com/gabemeola/mit.git
+cd mit
+
+# Build for your current platform
+task build
+
+# Or install to $GOPATH/bin
+task install
+```
+
+#### Lite Build (no embedding support)
+
+If you don't need `mit index` / `mit search`, you can build without CGo or llama.cpp:
+
+```sh
+task build-lite
+```
+
+This produces a smaller binary without the `index` and `search` commands.
 
 ### Development
 

@@ -52,7 +52,7 @@ func InitCommand() *cli.Command {
 			}
 
 			fmt.Printf("Created %s for workspace %q\n", config.ConfigFileName, name)
-			fmt.Println("Add repos with: mit add <url>")
+			fmt.Printf("Add repos with: %s add <url>\n", cmd.Root().Name)
 			return nil
 		},
 	}

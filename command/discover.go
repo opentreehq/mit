@@ -2,9 +2,10 @@ package command
 
 import (
 	"context"
-	"fmt"
 	"os"
+	"path/filepath"
 
+	"github.com/gabemeola/mit/config"
 	"github.com/gabemeola/mit/output"
 	"github.com/gabemeola/mit/workspace"
 	"github.com/urfave/cli/v3"
@@ -33,16 +34,17 @@ func DiscoverCommand() *cli.Command {
 					Description: ws.Config.Workspace.Description,
 					Root:        ws.Root,
 				},
-				MitDir: fmt.Sprintf("%s/.mit", ws.Root),
+				MitDir: filepath.Join(ws.Root, config.DataDir),
 			}
 
-			if _, err := os.Stat(fmt.Sprintf("%s/.mit/state.db", ws.Root)); err == nil {
+			dataDir := filepath.Join(ws.Root, config.DataDir)
+			if _, err := os.Stat(filepath.Join(dataDir, "state.db")); err == nil {
 				info.HasStateDB = true
 			}
-			if _, err := os.Stat(fmt.Sprintf("%s/.mit/memory", ws.Root)); err == nil {
+			if _, err := os.Stat(filepath.Join(dataDir, "memory")); err == nil {
 				info.HasMemory = true
 			}
-			if _, err := os.Stat(fmt.Sprintf("%s/.mit/skills", ws.Root)); err == nil {
+			if _, err := os.Stat(filepath.Join(dataDir, "skills")); err == nil {
 				info.HasSkills = true
 			}
 

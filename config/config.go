@@ -8,9 +8,13 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-const ConfigFileName = "mit.yaml"
+var (
+	ConfigFileName = "mit.yaml"
+	DataDir        = ".mit"
+	ModelsDir      = ".mit/models"
+)
 
-const SchemaComment = "# yaml-language-server: $schema=https://raw.githubusercontent.com/gabemeola/mit/refs/heads/main/mit.schema.json\n"
+var SchemaComment = "# yaml-language-server: $schema=https://raw.githubusercontent.com/gabemeola/mit/refs/heads/main/mit.schema.json\n"
 
 // Load reads and parses mit.yaml from the given directory.
 func Load(dir string) (*Config, error) {

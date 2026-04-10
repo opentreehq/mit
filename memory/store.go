@@ -9,6 +9,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gabemeola/mit/config"
+
 	"github.com/adrg/frontmatter"
 	"gopkg.in/yaml.v2"
 )
@@ -27,15 +29,14 @@ type Memory struct {
 // ValidTypes are the allowed memory types.
 var ValidTypes = []string{"observation", "decision", "pattern", "gotcha"}
 
-// Store manages memory files under <root>/.mit/memory/.
+// Store manages memory files under <root>/<DataDir>/memory/.
 type Store struct {
 	dir string
 }
 
 // NewStore creates a Store rooted at the given workspace root.
-// It ensures the .mit/memory/ directory exists.
 func NewStore(workspaceRoot string) (*Store, error) {
-	dir := filepath.Join(workspaceRoot, ".mit", "memory")
+	dir := filepath.Join(workspaceRoot, config.DataDir, "memory")
 	if err := os.MkdirAll(dir, 0755); err != nil {
 		return nil, fmt.Errorf("creating memory directory: %w", err)
 	}

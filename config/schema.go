@@ -31,7 +31,7 @@ var DefaultIndexIgnore = []string{
 	// directories
 	".git", ".sl", "node_modules", "vendor", ".next",
 	"dist", "build", "__pycache__", ".cache", "target",
-	".mit", ".mit-worktrees",
+	DataDir, DataDir + "-worktrees",
 	// lock files (no semantic value)
 	"package-lock.json", "yarn.lock", "pnpm-lock.yaml",
 	"go.sum", "Gemfile.lock", "poetry.lock", "composer.lock",

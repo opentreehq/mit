@@ -7,10 +7,11 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+
+	"github.com/gabemeola/mit/config"
 )
 
-const (
-	ModelsDir        = ".mit/models"
+var (
 	DefaultModelName = "Qwen3-Embedding-0.6B-Q8_0.gguf"
 	DefaultModelURL  = "https://huggingface.co/Qwen/Qwen3-Embedding-0.6B-GGUF/resolve/main/Qwen3-Embedding-0.6B-Q8_0.gguf"
 )
@@ -45,7 +46,7 @@ func ModelPath(name string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("getting home dir: %w", err)
 	}
-	return filepath.Join(home, ModelsDir, name), nil
+	return filepath.Join(home, config.ModelsDir, name), nil
 }
 
 // ModelExists checks if a model file exists.
@@ -64,7 +65,7 @@ func EnsureModelDir() error {
 	if err != nil {
 		return err
 	}
-	dir := filepath.Join(home, ModelsDir)
+	dir := filepath.Join(home, config.ModelsDir)
 	return os.MkdirAll(dir, 0755)
 }
 

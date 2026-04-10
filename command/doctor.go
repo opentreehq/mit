@@ -5,8 +5,10 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 
 	"github.com/fatih/color"
+	"github.com/gabemeola/mit/config"
 	"github.com/gabemeola/mit/output"
 	"github.com/gabemeola/mit/workspace"
 	"github.com/urfave/cli/v3"
@@ -91,11 +93,11 @@ func DoctorCommand() *cli.Command {
 				})
 			}
 
-			if _, err := os.Stat(fmt.Sprintf("%s/.mit", ws.Root)); err != nil {
+			if _, err := os.Stat(filepath.Join(ws.Root, config.DataDir)); err != nil {
 				checks = append(checks, doctorCheck{
 					Name:   "state/db",
 					Status: "warning",
-					Detail: ".mit directory not found (run mit index or mit task to create)",
+					Detail: config.DataDir + " directory not found (run index or task to create)",
 				})
 			}
 

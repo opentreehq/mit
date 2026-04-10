@@ -7,6 +7,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/gabemeola/mit/config"
+
 	"github.com/adrg/frontmatter"
 	"gopkg.in/yaml.v2"
 )
@@ -20,15 +22,14 @@ type Skill struct {
 	Content     string   `yaml:"-"           json:"content"`
 }
 
-// Registry manages skill files under <root>/.mit/skills/.
+// Registry manages skill files under <root>/<DataDir>/skills/.
 type Registry struct {
 	dir string
 }
 
 // NewRegistry creates a Registry rooted at the given workspace root.
-// It ensures the .mit/skills/ directory exists.
 func NewRegistry(workspaceRoot string) (*Registry, error) {
-	dir := filepath.Join(workspaceRoot, ".mit", "skills")
+	dir := filepath.Join(workspaceRoot, config.DataDir, "skills")
 	if err := os.MkdirAll(dir, 0755); err != nil {
 		return nil, fmt.Errorf("creating skills directory: %w", err)
 	}

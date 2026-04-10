@@ -72,9 +72,9 @@ func Open(dir string) (*DB, error) {
 	if err != nil {
 		return nil, fmt.Errorf("statedb: finding workspace root: %w", err)
 	}
-	dbDir := filepath.Join(root, ".mit")
+	dbDir := filepath.Join(root, config.DataDir)
 	if err := os.MkdirAll(dbDir, 0755); err != nil {
-		return nil, fmt.Errorf("statedb: creating .mit directory: %w", err)
+		return nil, fmt.Errorf("statedb: creating %s directory: %w", config.DataDir, err)
 	}
 	return OpenPath(filepath.Join(dbDir, "state.db"))
 }

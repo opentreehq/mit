@@ -5,6 +5,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/gabemeola/mit/config"
 )
 
 const (
@@ -158,10 +160,15 @@ func avgLineLength(path string, n int) int {
 var DefaultIgnoreDirs = map[string]bool{
 	".git": true, ".sl": true, "node_modules": true, "vendor": true,
 	".next": true, "dist": true, "build": true, "__pycache__": true,
-	".cache": true, "target": true, ".mit": true, ".mit-worktrees": true,
+	".cache": true, "target": true,
 	"package-lock.json": true, "yarn.lock": true, "pnpm-lock.yaml": true,
 	"go.sum": true, "Cargo.lock": true,
 	".env": true,
+}
+
+func init() {
+	DefaultIgnoreDirs[config.DataDir] = true
+	DefaultIgnoreDirs[config.DataDir+"-worktrees"] = true
 }
 
 // WalkResult contains the results of walking a repo directory.

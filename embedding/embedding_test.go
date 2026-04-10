@@ -5,6 +5,8 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/gabemeola/mit/config"
 )
 
 // --- StubEmbedder tests ---
@@ -47,7 +49,7 @@ func TestModelPath_ReturnsHomeBasedPath(t *testing.T) {
 		t.Fatalf("ModelPath: %v", err)
 	}
 	home, _ := os.UserHomeDir()
-	expected := filepath.Join(home, ".mit/models", DefaultModelName)
+	expected := filepath.Join(home, config.ModelsDir, DefaultModelName)
 	if p != expected {
 		t.Errorf("ModelPath: got %q, want %q", p, expected)
 	}
@@ -66,7 +68,7 @@ func TestEnsureModelDir_CreatesDir(t *testing.T) {
 		t.Fatalf("EnsureModelDir: %v", err)
 	}
 	home, _ := os.UserHomeDir()
-	dir := filepath.Join(home, ".mit/models")
+	dir := filepath.Join(home, config.ModelsDir)
 	info, err := os.Stat(dir)
 	if err != nil {
 		t.Fatalf("model dir not created: %v", err)

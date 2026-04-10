@@ -316,30 +316,6 @@ task lint
 task clean
 ```
 
-### Project Structure
-
-```
-mit/
-├── cmd/mit/              # Entry point
-├── internal/
-│   ├── cli/              # Cobra commands
-│   ├── config/           # mit.yaml parsing + schema
-│   ├── vcs/              # Git and Sapling drivers
-│   ├── workspace/        # Workspace loading + repo filtering
-│   ├── executor/         # Parallel execution engine
-│   ├── index/            # Code chunking + embedding orchestration
-│   ├── embedding/        # CGo wrapper around llama.cpp
-│   │   └── llama/        # llama.cpp bindings + platform-specific CGo flags
-│   ├── statedb/          # SQLite state store (tasks, index, checksums)
-│   ├── memory/           # .mit/memory/ markdown store
-│   ├── skills/           # .mit/skills/ discovery
-│   └── output/           # JSON, table, plain formatters
-├── cmake/                # Zig cross-compilation toolchain files
-├── third_party/
-│   └── llama.cpp/        # Vendored llama.cpp (git submodule)
-└── Taskfile.yml
-```
-
 ### Build Tags
 
 - **Default build**: includes llama.cpp embedding support via CGo. Requires CMake and the llama.cpp submodule.
@@ -347,9 +323,10 @@ mit/
 
 ### Adding a New Command
 
-1. Create `internal/cli/<command>.go`
-2. Define the cobra command and register it in `init()` with `rootCmd.AddCommand()`
-3. If the command depends on embeddings, add `//go:build !noembed` at the top
+1. Create `command/<name>.go`
+2. Define an exported constructor `func NameCommand() *cli.Command` returning a `*cli.Command`
+3. Add the constructor call to the command list in `cmd/mit/main.go`
+4. If the command depends on embeddings, place it in `command/embedcmd/` and add it to `cmd/mit/embed.go`
 
 ### Cross-Compilation
 
@@ -357,7 +334,7 @@ Cross-compilation uses Zig as a drop-in C/C++ compiler via CMake toolchain files
 
 - A CMake toolchain file (e.g., `cmake/zig-linux-x86_64.cmake`)
 - Wrapper scripts for `zig cc`/`zig c++` (required because CMake needs a single executable path)
-- Platform-specific CGo linker flags in `internal/embedding/llama/cgo_<platform>.go`
+- Platform-specific CGo linker flags in `embedding/llama/cgo_<platform>.go`
 
 To add a new cross-compilation target:
 

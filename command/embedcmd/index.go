@@ -6,10 +6,10 @@ import (
 	"os"
 	"time"
 
-	"github.com/gabemeola/mit/index"
-	"github.com/gabemeola/mit/output"
-	"github.com/gabemeola/mit/statedb"
-	"github.com/gabemeola/mit/workspace"
+	"github.com/opentreehq/mit/index"
+	"github.com/opentreehq/mit/output"
+	"github.com/opentreehq/mit/statedb"
+	"github.com/opentreehq/mit/workspace"
 	"github.com/urfave/cli/v3"
 )
 

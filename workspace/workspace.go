@@ -6,8 +6,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/gabemeola/mit/config"
-	"github.com/gabemeola/mit/vcs"
+	"github.com/opentreehq/mit/config"
+	"github.com/opentreehq/mit/vcs"
 )
 
 // Workspace represents a loaded mit workspace.

@@ -12,10 +12,10 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/gabemeola/mit/embedding"
-	"github.com/gabemeola/mit/index"
-	"github.com/gabemeola/mit/statedb"
-	"github.com/gabemeola/mit/workspace"
+	"github.com/opentreehq/mit/embedding"
+	"github.com/opentreehq/mit/index"
+	"github.com/opentreehq/mit/statedb"
+	"github.com/opentreehq/mit/workspace"
 )
 
 func skipIfNoModel(t *testing.T) {

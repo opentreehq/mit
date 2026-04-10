@@ -277,7 +277,7 @@ Cross-compilation from macOS uses Zig as the C/C++ toolchain. Linux and Windows 
 
 ```sh
 # Clone with submodules
-git clone --recurse-submodules https://github.com/gabemeola/mit.git
+git clone --recurse-submodules https://github.com/opentreehq/mit.git
 cd mit
 
 # Build for your current platform

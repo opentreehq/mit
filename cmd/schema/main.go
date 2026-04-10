@@ -32,7 +32,7 @@ type Property struct {
 func main() {
 	schema := JSONSchema{
 		Schema:      "https://json-schema.org/draft/2020-12/schema",
-		ID:          "https://github.com/gabemeola/mit/mit.schema.json",
+		ID:          "https://github.com/opentreehq/mit/mit.schema.json",
 		Title:       "mit.yaml",
 		Description: "Configuration file for mit - a multi-repo integration tool",
 		Type:        "object",

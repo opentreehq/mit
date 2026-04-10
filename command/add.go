@@ -7,8 +7,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/gabemeola/mit/config"
-	"github.com/gabemeola/mit/vcs"
+	"github.com/opentreehq/mit/config"
+	"github.com/opentreehq/mit/vcs"
 	"github.com/urfave/cli/v3"
 )
 

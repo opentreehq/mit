@@ -6,7 +6,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/gabemeola/mit/command"
+	"github.com/opentreehq/mit/command"
 	"github.com/urfave/cli/v3"
 )
 

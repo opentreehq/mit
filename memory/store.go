@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gabemeola/mit/config"
+	"github.com/opentreehq/mit/config"
 
 	"github.com/adrg/frontmatter"
 	"gopkg.in/yaml.v2"

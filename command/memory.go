@@ -6,9 +6,9 @@ import (
 	"os"
 	"strings"
 
-	"github.com/gabemeola/mit/config"
-	"github.com/gabemeola/mit/memory"
-	"github.com/gabemeola/mit/output"
+	"github.com/opentreehq/mit/config"
+	"github.com/opentreehq/mit/memory"
+	"github.com/opentreehq/mit/output"
 	"github.com/urfave/cli/v3"
 )
 

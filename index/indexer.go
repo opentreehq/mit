@@ -7,8 +7,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/gabemeola/mit/embedding"
-	"github.com/gabemeola/mit/statedb"
+	"github.com/opentreehq/mit/embedding"
+	"github.com/opentreehq/mit/statedb"
 )
 
 // ProgressFunc is called during indexing to report progress.

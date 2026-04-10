@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/gabemeola/mit/embedding/llama"
+	"github.com/opentreehq/mit/embedding/llama"
 )
 
 func modelPath(t *testing.T) string {

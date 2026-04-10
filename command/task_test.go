@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/gabemeola/mit/forge"
+	"github.com/opentreehq/mit/forge"
 )
 
 func TestShortID(t *testing.T) {

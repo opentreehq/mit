@@ -7,11 +7,11 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/gabemeola/mit/config"
-	"github.com/gabemeola/mit/executor"
-	"github.com/gabemeola/mit/output"
-	"github.com/gabemeola/mit/vcs"
-	"github.com/gabemeola/mit/workspace"
+	"github.com/opentreehq/mit/config"
+	"github.com/opentreehq/mit/executor"
+	"github.com/opentreehq/mit/output"
+	"github.com/opentreehq/mit/vcs"
+	"github.com/opentreehq/mit/workspace"
 	"github.com/urfave/cli/v3"
 )
 

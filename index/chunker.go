@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/gabemeola/mit/config"
+	"github.com/opentreehq/mit/config"
 )
 
 const (

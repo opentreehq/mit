@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/gabemeola/mit/executor"
-	"github.com/gabemeola/mit/output"
-	"github.com/gabemeola/mit/workspace"
+	"github.com/opentreehq/mit/executor"
+	"github.com/opentreehq/mit/output"
+	"github.com/opentreehq/mit/workspace"
 	"github.com/urfave/cli/v3"
 )
 

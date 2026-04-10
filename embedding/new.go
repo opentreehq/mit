@@ -2,7 +2,7 @@
 
 package embedding
 
-import "github.com/gabemeola/mit/embedding/llama"
+import "github.com/opentreehq/mit/embedding/llama"
 
 // NewEmbedder creates a LlamaEmbedder backed by llama.cpp.
 // modelPath: path to GGUF model file.

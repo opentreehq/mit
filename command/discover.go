@@ -5,9 +5,9 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/gabemeola/mit/config"
-	"github.com/gabemeola/mit/output"
-	"github.com/gabemeola/mit/workspace"
+	"github.com/opentreehq/mit/config"
+	"github.com/opentreehq/mit/output"
+	"github.com/opentreehq/mit/workspace"
 	"github.com/urfave/cli/v3"
 )
 

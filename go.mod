@@ -1,4 +1,4 @@
-module github.com/gabemeola/mit
+module github.com/opentreehq/mit
 
 go 1.26.1
 

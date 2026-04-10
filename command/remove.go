@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/gabemeola/mit/config"
+	"github.com/opentreehq/mit/config"
 	"github.com/urfave/cli/v3"
 )
 

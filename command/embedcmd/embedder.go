@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/gabemeola/mit/config"
-	"github.com/gabemeola/mit/embedding"
+	"github.com/opentreehq/mit/config"
+	"github.com/opentreehq/mit/embedding"
 )
 
 func modelSpecFromConfig(cfg *config.Config) embedding.ModelSpec {

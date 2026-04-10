@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/gabemeola/mit/mit.schema.json",
+  "$id": "https://github.com/opentreehq/mit/mit.schema.json",
   "title": "mit.yaml",
   "description": "Configuration file for mit - a multi-repo integration tool",
   "type": "object",

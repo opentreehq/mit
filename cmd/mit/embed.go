@@ -3,7 +3,7 @@
 package main
 
 import (
-	"github.com/gabemeola/mit/command/embedcmd"
+	"github.com/opentreehq/mit/command/embedcmd"
 	"github.com/urfave/cli/v3"
 )
 

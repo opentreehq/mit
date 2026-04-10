@@ -8,8 +8,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/gabemeola/mit/output"
-	"github.com/gabemeola/mit/workspace"
+	"github.com/opentreehq/mit/output"
+	"github.com/opentreehq/mit/workspace"
 	"github.com/urfave/cli/v3"
 	"gopkg.in/yaml.v3"
 )

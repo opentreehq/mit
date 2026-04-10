@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/gabemeola/mit/statedb"
+	"github.com/opentreehq/mit/statedb"
 )
 
 // mockEmbedder returns deterministic embeddings based on text length.

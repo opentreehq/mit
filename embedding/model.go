@@ -8,7 +8,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/gabemeola/mit/config"
+	"github.com/opentreehq/mit/config"
 )
 
 var (

@@ -38,6 +38,13 @@ tasks:
   build:macos-arm64:
     desc: Build for macOS (Metal + Accelerate)
     deps: [build-llama:macos-arm64]
+    sources:
+      - ./**/*.go
+      - go.mod
+      - go.sum
+      - cmd/mit/version.txt
+    generates:
+      - dist/{{.BINARY}}
     env:
       CGO_ENABLED: "1"
     cmds:
@@ -46,6 +53,13 @@ tasks:
   build:linux-amd64:
     desc: Cross-compile for Linux x86_64 (CPU-only)
     deps: [build-llama:linux-amd64]
+    sources:
+      - ./**/*.go
+      - go.mod
+      - go.sum
+      - cmd/mit/version.txt
+    generates:
+      - dist/mit-linux-amd64
     env:
       CGO_ENABLED: "1"
       GOOS: linux
@@ -59,6 +73,13 @@ tasks:
   build:linux-arm64:
     desc: Cross-compile for Linux aarch64 (CPU-only)
     deps: [build-llama:linux-arm64]
+    sources:
+      - ./**/*.go
+      - go.mod
+      - go.sum
+      - cmd/mit/version.txt
+    generates:
+      - dist/mit-linux-arm64
     env:
       CGO_ENABLED: "1"
       GOOS: linux
@@ -72,6 +93,13 @@ tasks:
   build:windows-amd64:
     desc: Cross-compile for Windows x86_64 (CPU-only)
     deps: [build-llama:windows-amd64]
+    sources:
+      - ./**/*.go
+      - go.mod
+      - go.sum
+      - cmd/mit/version.txt
+    generates:
+      - dist/mit-windows-amd64.exe
     env:
       CGO_ENABLED: "1"
       GOOS: windows
@@ -158,6 +186,13 @@ tasks:
 
   build-lite:
     desc: Build without embedding support (no CGo needed)
+    sources:
+      - ./**/*.go
+      - go.mod
+      - go.sum
+      - cmd/mit/version.txt
+    generates:
+      - dist/{{.BINARY}}
     env:
       CGO_ENABLED: "0"
     cmds:

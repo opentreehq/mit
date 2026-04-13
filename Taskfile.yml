@@ -36,7 +36,7 @@ tasks:
   # ── Platform targets ────────────────────────────────────────────────
 
   build:macos-arm64:
-    desc: Build for macOS (Metal + Accelerate)
+    desc: Build for macOS arm64 (Metal + Accelerate)
     deps: [build-llama:macos-arm64]
     sources:
       - ./**/*.go
@@ -47,8 +47,28 @@ tasks:
       - dist/{{.BINARY}}
     env:
       CGO_ENABLED: "1"
+      GOOS: darwin
+      GOARCH: arm64
     cmds:
       - go build -o dist/{{.BINARY}} {{.BUILD_DIR}}
+
+  build:macos-amd64:
+    desc: Build for macOS amd64 (CPU-only)
+    deps: [build-llama:macos-amd64]
+    sources:
+      - ./**/*.go
+      - go.mod
+      - go.sum
+      - cmd/mit/version.txt
+    generates:
+      - dist/{{.BINARY}}-macos-amd64
+    env:
+      CGO_ENABLED: "1"
+      GOOS: darwin
+      GOARCH: amd64
+      CGO_LDFLAGS: "-L{{.ROOT_DIR}}/{{.LLAMA_BUILD}}-macos-amd64/src -L{{.ROOT_DIR}}/{{.LLAMA_BUILD}}-macos-amd64/ggml/src -L{{.ROOT_DIR}}/{{.LLAMA_BUILD}}-macos-amd64/ggml/src/ggml-cpu"
+    cmds:
+      - go build -o dist/{{.BINARY}}-macos-amd64 {{.BUILD_DIR}}
 
   build:linux-amd64:
     desc: Cross-compile for Linux x86_64 (CPU-only)
@@ -113,13 +133,14 @@ tasks:
   # ── llama.cpp builds ────────────────────────────────────────────────
 
   build-llama:macos-arm64:
-    desc: Build llama.cpp for macOS (Metal + Accelerate)
+    desc: Build llama.cpp for macOS arm64 (Metal + Accelerate)
     status:
       - test -f {{.LLAMA_BUILD}}/src/libllama.a
     cmds:
-      - echo "Building llama.cpp (macOS Metal + Accelerate)..."
+      - echo "Building llama.cpp (macOS arm64 Metal + Accelerate)..."
       - >-
         cmake -B {{.LLAMA_BUILD}} -S {{.LLAMA_DIR}}
+        -DCMAKE_OSX_ARCHITECTURES=arm64
         -DBUILD_SHARED_LIBS=OFF
         -DLLAMA_BUILD_EXAMPLES=OFF
         -DLLAMA_BUILD_TESTS=OFF
@@ -128,6 +149,23 @@ tasks:
         -DGGML_BLAS=ON
         -DGGML_BLAS_VENDOR=Apple
       - cmake --build {{.LLAMA_BUILD}} --config Release -j{{.NPROC}}
+
+  build-llama:macos-amd64:
+    desc: Build llama.cpp for macOS amd64 (CPU-only)
+    status:
+      - test -f {{.LLAMA_BUILD}}-macos-amd64/src/libllama.a
+    cmds:
+      - echo "Building llama.cpp (macOS amd64 CPU-only)..."
+      - >-
+        cmake -B {{.LLAMA_BUILD}}-macos-amd64 -S {{.LLAMA_DIR}}
+        -DCMAKE_OSX_ARCHITECTURES=x86_64
+        -DBUILD_SHARED_LIBS=OFF
+        -DLLAMA_BUILD_EXAMPLES=OFF
+        -DLLAMA_BUILD_TESTS=OFF
+        -DLLAMA_BUILD_SERVER=OFF
+        -DGGML_METAL=OFF
+        -DGGML_BLAS=OFF
+      - cmake --build {{.LLAMA_BUILD}}-macos-amd64 --config Release -j{{.NPROC}}
 
   build-llama:linux-amd64:
     desc: Build llama.cpp for Linux x86_64 (CPU-only) using zig
@@ -213,6 +251,7 @@ tasks:
 
       # Build each supported target using the existing platform-specific tasks.
       - task: build:macos-arm64
+      - task: build:macos-amd64
       - task: build:linux-amd64
       - task: build:linux-arm64
       - task: build:windows-amd64
@@ -224,6 +263,11 @@ tasks:
       - cp README.md LICENSE {{.RELEASE_DIR}}/mit_Darwin_arm64/
       - tar -C {{.RELEASE_DIR}} -czf {{.RELEASE_DIR}}/{{.BINARY}}_Darwin_arm64.tar.gz mit_Darwin_arm64
       - rm -rf {{.RELEASE_DIR}}/mit_Darwin_arm64
+      - mkdir -p {{.RELEASE_DIR}}/mit_Darwin_x86_64
+      - cp dist/{{.BINARY}}-macos-amd64 {{.RELEASE_DIR}}/mit_Darwin_x86_64/{{.BINARY}}
+      - cp README.md LICENSE {{.RELEASE_DIR}}/mit_Darwin_x86_64/
+      - tar -C {{.RELEASE_DIR}} -czf {{.RELEASE_DIR}}/{{.BINARY}}_Darwin_x86_64.tar.gz mit_Darwin_x86_64
+      - rm -rf {{.RELEASE_DIR}}/mit_Darwin_x86_64
       - mkdir -p {{.RELEASE_DIR}}/mit_Linux_x86_64
       - cp dist/{{.BINARY}}-linux-amd64 {{.RELEASE_DIR}}/mit_Linux_x86_64/{{.BINARY}}
       - cp README.md LICENSE {{.RELEASE_DIR}}/mit_Linux_x86_64/
@@ -249,6 +293,7 @@ tasks:
         tag='{{.RELEASE_TAG}}'
         version="${tag#v}"
         darwin_arm64_sha=$(shasum -a 256 {{.RELEASE_DIR}}/{{.BINARY}}_Darwin_arm64.tar.gz | awk '{print $1}')
+        darwin_amd64_sha=$(shasum -a 256 {{.RELEASE_DIR}}/{{.BINARY}}_Darwin_x86_64.tar.gz | awk '{print $1}')
         linux_amd64_sha=$(shasum -a 256 {{.RELEASE_DIR}}/{{.BINARY}}_Linux_x86_64.tar.gz | awk '{print $1}')
         linux_arm64_sha=$(shasum -a 256 {{.RELEASE_DIR}}/{{.BINARY}}_Linux_arm64.tar.gz | awk '{print $1}')
         cat > {{.DIST_DIR}}/{{.BINARY}}.rb <<EOF
@@ -266,6 +311,15 @@ tasks:
             if Hardware::CPU.arm?
               url "https://{{.GITHUB_REPO}}/releases/download/${tag}/mit_Darwin_arm64.tar.gz"
               sha256 "${darwin_arm64_sha}"
+
+              def install
+                bin.install "mit"
+              end
+            end
+
+            if Hardware::CPU.intel?
+              url "https://{{.GITHUB_REPO}}/releases/download/${tag}/mit_Darwin_x86_64.tar.gz"
+              sha256 "${darwin_amd64_sha}"
 
               def install
                 bin.install "mit"
@@ -344,7 +398,7 @@ tasks:
   clean-llama:
     desc: Remove all llama.cpp build artifacts (all platforms)
     cmds:
-      - rm -rf {{.LLAMA_BUILD}} {{.LLAMA_BUILD}}-linux-amd64 {{.LLAMA_BUILD}}-linux-arm64 {{.LLAMA_BUILD}}-windows-amd64
+      - rm -rf {{.LLAMA_BUILD}} {{.LLAMA_BUILD}}-macos-amd64 {{.LLAMA_BUILD}}-linux-amd64 {{.LLAMA_BUILD}}-linux-arm64 {{.LLAMA_BUILD}}-windows-amd64
 
   schema:
     desc: Generate JSON schema for mit.yaml

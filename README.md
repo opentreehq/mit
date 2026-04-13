@@ -257,6 +257,7 @@ All binaries are output to `./dist/`.
 |------|----------|--------|
 | `task build` | Auto-detect | `dist/mit` |
 | `task build:macos-arm64` | macOS Apple Silicon | `dist/mit` |
+| `task build:macos-amd64` | macOS Intel | `dist/mit-macos-amd64` |
 | `task build:linux-amd64` | Linux x86_64 | `dist/mit-linux-amd64` |
 | `task build:linux-arm64` | Linux aarch64 | `dist/mit-linux-arm64` |
 | `task build:windows-amd64` | Windows x86_64 | `dist/mit-windows-amd64.exe` |
